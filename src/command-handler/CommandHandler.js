@@ -1,21 +1,22 @@
 const path = require("path");
 
 const getAllFiles = require("../util/get-all-files");
-const BaseCommand = require("./Command");
+const BaseCommand = require("./BaseCommand");
 
 class CommandHandler {
 
     // <commandName, instance of the BaseCommandClass>
     commands = new Map()
 
-    constructor(commandsDir, client) {
-        this.commandsDir = commandsDir
+    constructor(instance, commandsDir, client) {
+        this._instance = instance
+        this._commandsDir = commandsDir
         this.readFiles()
         this.messageListener(client)
     }
 
     readFiles() {
-        const files = getAllFiles(this.commandsDir)
+        const files = getAllFiles(this._commandsDir)
         const validations = this.getValidations('syntax')
 
         for (const file of files) {
@@ -25,7 +26,7 @@ class CommandHandler {
             commandName = commandName.pop()
             commandName = commandName.split(".")[0]
 
-            const command = new BaseCommand(commandName, commandObject)
+            const command = new BaseCommand(this._instance, commandName, commandObject)
 
             for (const validation of validations) {
                 validation(command)
@@ -54,7 +55,7 @@ class CommandHandler {
                 return
             }
 
-            const usage = { message, args, text: args.join(' ') }
+            const usage = { message, args, text: args.join(' '), guild: message.guild }
 
             for (const validation of validations) {
                 if (!validation(command, usage, prefix)) {
