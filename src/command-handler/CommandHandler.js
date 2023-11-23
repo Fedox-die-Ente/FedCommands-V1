@@ -1,4 +1,5 @@
 const path = require("path");
+const { InteractionType } = require("discord.js");
 
 const getAllFiles = require("../util/get-all-files");
 const BaseCommand = require("./BaseCommand");
@@ -7,18 +8,23 @@ const SlashCommands = require("./SlashCommands");
 class CommandHandler {
 
     // <commandName, instance of the BaseCommandClass>
-    commands = new Map()
+    _commands = new Map()
+    _validations = this.getValidations('run-time')
+    _prefix = "!";
+
 
     constructor(instance, commandsDir, client) {
         this._instance = instance
         this._commandsDir = commandsDir
         this._slashCommands = new SlashCommands(client)
+        this._client = client
 
         this.readFiles()
         this.messageListener(client)
+        this.interactionListener(client)
     }
 
-    readFiles() {
+    async readFiles() {
         const files = getAllFiles(this._commandsDir)
         const validations = this.getValidations('syntax')
 
@@ -31,15 +37,48 @@ class CommandHandler {
 
             const command = new BaseCommand(this._instance, commandName, commandObject)
 
+            const {
+                description,
+                type,
+                testOnly,
+                delete: del,
+                aliases = [],
+                init = () => {},
+            } = commandObject
+
+            if (del) {
+                if (type === 'SLASH' || type === 'BOTH') {
+                    if (testOnly) {
+                        for (const guildId of this._instance.testServers) {
+                            this._slashCommands.delete(
+                                command.commandName,
+                                guildId
+                            )
+                        }
+                    } else {
+                        this._slashCommands.delete(
+                            command.commandName
+                        )
+                    }
+                }
+                return
+            }
+
             for (const validation of validations) {
                 validation(command)
             }
 
-            const { description, options = [], type, testOnly } = commandObject
+            await init(this._client, this._instance)
 
-            this.commands.set(command.commandName, command)
+            const names = [command.commandName, ...aliases]
+
+            for (const name of names) {
+                this._commands.set(name, command)
+            }
 
             if (type === 'SLASH' || type === 'BOTH') {
+                const options = commandObject.options || this._slashCommands.createOptions(commandObject)
+
                 if (testOnly) {
                     for (const guildId of this._instance.testServers) {
                         this._slashCommands.create(
@@ -60,39 +99,85 @@ class CommandHandler {
         }
     }
 
-    messageListener(client) {
-        const validations = this.getValidations('run-time')
-        const prefix = "!";
+    async runCommand(command, args, message, interaction) {
 
-        client.on('messageCreate', (message) => {
+        const { callback, type } = command.commandObject
+
+        if (message && type === 'SLASH') {
+            return
+        }
+
+        const usage = {
+            message,
+            interaction,
+            args,
+            text: args.join(' '),
+            guild: message ? message.guild : interaction.guild,
+            member: message ? message.member : interaction.member,
+            user: message ? message.author : interaction.user
+        }
+
+        for (const validation of this._validations) {
+            if (!validation(command, usage, this._prefix)) {
+                return
+            }
+        }
+
+
+        return await callback(usage)
+    }
+
+    messageListener(client) {
+
+        client.on('messageCreate', async (message) => {
             const { content } = message
 
-            if (!content.startsWith(prefix)) {
+            if (!content.startsWith(this._prefix)) {
                 return
             }
 
             const args = content.split(/\s+/)
-            const commandName = args.shift().substring(prefix.length).toLowerCase()
+            const commandName = args.shift().substring(this._prefix.length).toLowerCase()
 
-            const command = this.commands.get(commandName)
+            const command = this._commands.get(commandName)
             if (!command) {
                 return
             }
-            const { callback, type } = command.commandObject
 
-            if (message && type === 'SLASH') {
+            const { reply } = command.commandObject
+
+            const response = await this.runCommand(command, args, message)
+            if (!response) {
                 return
             }
 
-            const usage = { message, args, text: args.join(' '), guild: message.guild }
+            if (reply) {
+                message.reply(response).catch(() => {})
+            } else {
+                message.channel.send(response).catch(() => {})
+            }
+        })
+    }
 
-            for (const validation of validations) {
-                if (!validation(command, usage, prefix)) {
-                    return
-                }
+    interactionListener(client) {
+        client.on('interactionCreate', async (interaction) => {
+            if (interaction.type !== InteractionType.ApplicationCommand) {
+                return
             }
 
-            callback(usage)
+            const args = interaction.options.data.map(({value}) => {
+                return String(value)
+            })
+
+            const command = this._commands.get(interaction.commandName)
+            if (!command) {
+                return
+            }
+
+            const response = await this.runCommand(command, args, null, interaction)
+            if (response) {
+                interaction.reply(response).catch(() => {})
+            }
         })
     }
 
