@@ -1,15 +1,27 @@
 const mongoose = require("mongoose");
 
 const CommandHandler = require("./command-handler/CommandHandler");
+const Cooldowns = require("./util/Cooldowns");
 
 class FedCommands {
-    constructor({ client, mongoUri, commandsDir, testServers = [], botOwners = [] }) {
+    constructor({
+                    client,
+                    mongoUri,
+                    commandsDir,
+                    testServers = [],
+                    botOwners = [] ,
+                    cooldownConfig = {}
+    }) {
         if(!client) {
             throw new Error('[FedCommands] Client is required!')
         }
 
         this._testServers = testServers
         this._botOwners = botOwners
+        this._cooldowns = new Cooldowns({
+            instance: this,
+            ...cooldownConfig
+        })
 
         if (mongoUri) {
             this.connectToMongo(mongoUri)
@@ -26,6 +38,10 @@ class FedCommands {
 
     get botOwners() {
         return this._botOwners
+    }
+
+    get cooldowns() {
+        return this._cooldowns
     }
 
     connectToMongo(mongoUri) {

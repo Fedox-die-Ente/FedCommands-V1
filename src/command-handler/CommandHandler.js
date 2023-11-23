@@ -5,6 +5,8 @@ const getAllFiles = require("../util/get-all-files");
 const BaseCommand = require("./BaseCommand");
 const SlashCommands = require("./SlashCommands");
 
+const { cooldownTypes } = require('../util/Cooldowns')
+
 class CommandHandler {
 
     // <commandName, instance of the BaseCommandClass>
@@ -101,20 +103,24 @@ class CommandHandler {
 
     async runCommand(command, args, message, interaction) {
 
-        const { callback, type } = command.commandObject
+        const { callback, type, cooldowns } = command.commandObject
 
         if (message && type === 'SLASH') {
             return
         }
+
+        const guild = message ? message.guild : interaction.guild
+        const member = message ? message.member : interaction.member
+        const user = message ? message.author : interaction.user
 
         const usage = {
             message,
             interaction,
             args,
             text: args.join(' '),
-            guild: message ? message.guild : interaction.guild,
-            member: message ? message.member : interaction.member,
-            user: message ? message.author : interaction.user
+            guild: guild,
+            member: member,
+            user: user,
         }
 
         for (const validation of this._validations) {
@@ -123,6 +129,33 @@ class CommandHandler {
             }
         }
 
+        if (cooldowns) {
+            let cooldownType
+
+            for (const type of cooldownTypes) {
+                if (cooldowns[type]) {
+                    cooldownType = type
+                    break
+                }
+            }
+
+            const cooldownUsage = {
+                cooldownType,
+                userId: user.id,
+                actionId: `command_${command.commandName}`,
+                guildId: guild?.id,
+                duration: cooldowns[cooldownType],
+                errorMessage: cooldowns.errorMessage
+            }
+
+            const result = this._instance.cooldowns.canRunAction(cooldownUsage)
+
+            if (typeof result === 'string') {
+                return result
+            }
+
+            this._instance.cooldowns.start(cooldownUsage)
+        }
 
         return await callback(usage)
     }
@@ -144,7 +177,11 @@ class CommandHandler {
                 return
             }
 
-            const { reply } = command.commandObject
+            const { reply, deferReply } = command.commandObject
+
+            if (deferReply) {
+                message.channel.sendTyping()
+            }
 
             const response = await this.runCommand(command, args, message)
             if (!response) {
@@ -174,8 +211,22 @@ class CommandHandler {
                 return
             }
 
+            const { deferReply } = command.commandObject
+
+            if (deferReply) {
+                await interaction.deferReply({
+                    ephemeral: deferReply === 'ephemeral'
+                })
+            }
+
             const response = await this.runCommand(command, args, null, interaction)
-            if (response) {
+            if (!response) {
+                return
+            }
+
+            if (deferReply) {
+                interaction.editReply(response).catch(() => {})
+            } else {
                 interaction.reply(response).catch(() => {})
             }
         })
