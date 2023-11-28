@@ -2,65 +2,95 @@ const mongoose = require("mongoose");
 
 const CommandHandler = require("./command-handler/CommandHandler");
 const Cooldowns = require("./util/Cooldowns");
-
+const EventHandler = require("./event-handler/EventHandler");
+const FeatureHandler = require("./util/FeatureHandler");
 class FedCommands {
-    constructor({
+    constructor(obj) {
+        this.init(obj);
+    }
+
+    async init({
         client,
         mongoUri,
         commandsDir,
+        featuresDir,
         testServers = [],
-        botOwners = [] ,
+        botOwners = [],
         cooldownConfig = {},
-        disabledDefaultCommands = []
+        disabledDefaultCommands = [],
+        events = {},
+        validations = {},
     }) {
-        if(!client) {
-            throw new Error('[FedCommands] Client is required!')
+        if (!client) {
+            throw new Error("[FedCommands] Client is required!");
         }
 
-        this._testServers = testServers
-        this._botOwners = botOwners
+        this._testServers = testServers;
+        this._botOwners = botOwners;
 
-        this._disabledDefaultCommands = disabledDefaultCommands.map(c => c.toLowerCase())
+        this._disabledDefaultCommands = disabledDefaultCommands.map((c) =>
+            c.toLowerCase(),
+        );
+
+        this._validations = validations;
 
         if (mongoUri) {
-            this.connectToMongo(mongoUri)
+            await this.connectToMongo(mongoUri);
             this._cooldowns = new Cooldowns({
                 instance: this,
-                ...cooldownConfig
-            })
+                ...cooldownConfig,
+            });
         }
 
         if (commandsDir) {
-            this._commandHandler = new CommandHandler(this, commandsDir, client)
+            this._commandHandler = new CommandHandler(
+                this,
+                commandsDir,
+                client,
+            );
         }
+
+        if (featuresDir) {
+            new FeatureHandler(this, featuresDir, client);
+        }
+
+        this._eventHandler = new EventHandler(this, events, client);
     }
 
     get testServers() {
-        return this._testServers
+        return this._testServers;
     }
 
     get botOwners() {
-        return this._botOwners
+        return this._botOwners;
     }
 
     get cooldowns() {
-        return this._cooldowns
+        return this._cooldowns;
     }
 
     get disabledDefaultCommands() {
-        return this._disabledDefaultCommands
+        return this._disabledDefaultCommands;
     }
 
     get commandHandler() {
-        return this._commandHandler
+        return this._commandHandler;
     }
 
-    connectToMongo(mongoUri) {
-        mongoose.set('strictQuery', false);
-        mongoose.connect(mongoUri, {
-            keepAlive: true
-        })
+    get eventHandler() {
+        return this._eventHandler;
+    }
+
+    get validations() {
+        return this._validations;
+    }
+
+    async connectToMongo(mongoUri) {
+        mongoose.set("strictQuery", false);
+        await mongoose.connect(mongoUri, {
+            keepAlive: true,
+        });
     }
 }
 
-module.exports = FedCommands
+module.exports = FedCommands;
