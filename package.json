@@ -1,5 +1,5 @@
 {
-  "name": "fed-commands",
+  "name": "@feeeedox/fed-commands",
   "version": "1.0.0",
   "description": "A simple command handler with some cool features.",
   "main": "src/index.js",
@@ -14,6 +14,8 @@
     "mongoose": "^6.6.1"
   },
   "publishConfig": {
-    "access": "restricted"
-  }
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {}
 }
