@@ -1,16 +1,19 @@
 {
-  "name": "command-handler",
+  "name": "fed-commands",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple command handler with some cool features.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Fedox",
+  "license": "AGPL-3.0",
   "dependencies": {
     "discord.js": "^14.14.1",
     "mongoose": "^6.6.1"
+  },
+  "publishConfig": {
+    "access": "restricted"
   }
 }
