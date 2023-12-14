@@ -8,6 +8,7 @@ const ChannelCommands = require("./ChannelCommands");
 const CustomCommands = require("./CustomCommands");
 const DisabledCommands = require("./DisabledCommands");
 const PrefixHandler = require("./PrefixHandler");
+const { Message } = require("discord.js");
 
 class CommandHandler {
     _validations = this.getValidations(
@@ -165,8 +166,11 @@ class CommandHandler {
         const member = message ? message.member : interaction.member;
         const user = message ? message.author : interaction.user;
         const channel = message ? message.channel : interaction.channel;
-        // Testing purposes
         const prefixUsed = this.prefixHandler.get(guild?.id);
+        const reply =
+            messageOrInteraction instanceof Message
+                ? messageOrInteraction.reply.bind(messageOrInteraction)
+                : interaction.reply.bind(interaction);
 
         const usage = {
             instance: command.instance,
@@ -180,6 +184,7 @@ class CommandHandler {
             channel,
             messageOrInteraction,
             prefixUsed,
+            reply,
         };
 
         for (const validation of this._validations) {
