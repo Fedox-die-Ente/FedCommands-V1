@@ -7,7 +7,6 @@ module.exports = {
 
     type: "SLASH",
     guildOnly: true,
-    testOnly: true,
 
     permissions: [PermissionsBitField.Administrator],
 

@@ -7,7 +7,6 @@ module.exports = {
     expectedArgs: "<prefix>",
 
     type: "BOTH",
-    testOnly: true,
     guildOnly: true,
 
     permissions: [PermissionsBitField.Administrator],
