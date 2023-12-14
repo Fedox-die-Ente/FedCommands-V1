@@ -156,10 +156,12 @@ class CommandHandler {
             return;
         }
 
+        const messageOrInteraction = message ? message : interaction;
         const guild = message ? message.guild : interaction.guild;
         const member = message ? message.member : interaction.member;
         const user = message ? message.author : interaction.user;
         const channel = message ? message.channel : interaction.channel;
+
 
         const usage = {
             instance: command.instance,
@@ -171,6 +173,7 @@ class CommandHandler {
             member,
             user,
             channel,
+            messageOrInteraction,
         };
 
         for (const validation of this._validations) {
