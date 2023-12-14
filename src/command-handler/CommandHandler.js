@@ -10,14 +10,9 @@ const DisabledCommands = require("./DisabledCommands");
 const PrefixHandler = require("./PrefixHandler");
 
 class CommandHandler {
-    // <commandName, instance of the Command class>
-    _commands = new Map();
     _validations = this.getValidations(
         path.join(__dirname, "validations", "runtime"),
     );
-    _channelCommands = new ChannelCommands();
-    _customCommands = new CustomCommands(this);
-    _disabledCommands = new DisabledCommands();
     _prefixes = new PrefixHandler();
 
     constructor(instance, commandsDir, client) {
@@ -34,24 +29,33 @@ class CommandHandler {
         this.readFiles();
     }
 
+    // <commandName, instance of the Command class>
+    _commands = new Map();
+
     get commands() {
         return this._commands;
     }
+
+    _channelCommands = new ChannelCommands();
 
     get channelCommands() {
         return this._channelCommands;
     }
 
-    get slashCommands() {
-        return this._slashCommands;
-    }
+    _customCommands = new CustomCommands(this);
 
     get customCommands() {
         return this._customCommands;
     }
 
+    _disabledCommands = new DisabledCommands();
+
     get disabledCommands() {
         return this._disabledCommands;
+    }
+
+    get slashCommands() {
+        return this._slashCommands;
     }
 
     get prefixHandler() {
@@ -161,7 +165,8 @@ class CommandHandler {
         const member = message ? message.member : interaction.member;
         const user = message ? message.author : interaction.user;
         const channel = message ? message.channel : interaction.channel;
-
+        // Testing purposes
+        const prefixUsed = this.prefixHandler.get(guild?.id);
 
         const usage = {
             instance: command.instance,
@@ -174,6 +179,7 @@ class CommandHandler {
             user,
             channel,
             messageOrInteraction,
+            prefixUsed,
         };
 
         for (const validation of this._validations) {
