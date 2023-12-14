@@ -171,7 +171,7 @@ class CommandHandler {
             messageOrInteraction instanceof Message
                 ? messageOrInteraction.reply.bind(messageOrInteraction)
                 : interaction.reply.bind(interaction);
-        const bot = this._instance.client.user;
+        const bot = messageOrInteraction.client;
 
         const usage = {
             bot,
