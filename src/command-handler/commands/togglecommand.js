@@ -9,6 +9,7 @@ module.exports = {
     guildOnly: true,
 
     permissions: [PermissionsBitField.Administrator],
+    category: "Built-In",
 
     options: [
         {

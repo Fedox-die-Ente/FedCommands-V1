@@ -8,6 +8,7 @@ module.exports = {
 
     type: "BOTH",
     guildOnly: true,
+    category: "Built-In",
 
     permissions: [PermissionsBitField.Administrator],
 

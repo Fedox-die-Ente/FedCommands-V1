@@ -8,6 +8,8 @@ module.exports = {
     expectedArgs: "<command name> <description> <response>",
 
     type: "SLASH",
+    category: "Built-In",
+
     guildOnly: true,
 
     permissions: [PermissionFlagsBits.Administrator],

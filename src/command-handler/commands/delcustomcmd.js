@@ -9,6 +9,7 @@ module.exports = {
 
     type: "SLASH",
     guildOnly: true,
+    category: "Built-In",
 
     permissions: [PermissionFlagsBits.Administrator],
 

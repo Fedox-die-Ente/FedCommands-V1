@@ -5,6 +5,7 @@ module.exports = {
 
     type: "SLASH",
     guildOnly: true,
+    category: "Built-In",
 
     options: [
         {

@@ -11,6 +11,7 @@ module.exports = {
     guildOnly: true,
 
     roles: [PermissionFlagsBits.Administrator],
+    category: "Built-In",
 
     options: [
         {
