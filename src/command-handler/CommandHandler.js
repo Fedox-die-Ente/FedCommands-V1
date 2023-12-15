@@ -80,9 +80,12 @@ class CommandHandler {
             commandName = commandName.pop();
             commandName = commandName.split(".")[0];
 
+            let commandCategory = commandObject.category;
+
             const command = new Command(
                 this._instance,
                 commandName,
+                commandCategory,
                 commandObject,
             );
 
