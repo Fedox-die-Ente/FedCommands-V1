@@ -4,9 +4,39 @@ const CommandHandler = require("./command-handler/CommandHandler");
 const Cooldowns = require("./util/Cooldowns");
 const EventHandler = require("./event-handler/EventHandler");
 const FeatureHandler = require("./util/FeatureHandler");
+const DefaultCommands = require("./util/DefaultCommands");
+
 class FedCommands {
     constructor(obj) {
         this.init(obj);
+    }
+
+    get testServers() {
+        return this._testServers;
+    }
+
+    get botOwners() {
+        return this._botOwners;
+    }
+
+    get cooldowns() {
+        return this._cooldowns;
+    }
+
+    get disabledDefaultCommands() {
+        return this._disabledDefaultCommands;
+    }
+
+    get commandHandler() {
+        return this._commandHandler;
+    }
+
+    get eventHandler() {
+        return this._eventHandler;
+    }
+
+    get validations() {
+        return this._validations;
     }
 
     async init({
@@ -55,34 +85,6 @@ class FedCommands {
         }
 
         this._eventHandler = new EventHandler(this, events, client);
-    }
-
-    get testServers() {
-        return this._testServers;
-    }
-
-    get botOwners() {
-        return this._botOwners;
-    }
-
-    get cooldowns() {
-        return this._cooldowns;
-    }
-
-    get disabledDefaultCommands() {
-        return this._disabledDefaultCommands;
-    }
-
-    get commandHandler() {
-        return this._commandHandler;
-    }
-
-    get eventHandler() {
-        return this._eventHandler;
-    }
-
-    get validations() {
-        return this._validations;
     }
 
     async connectToMongo(mongoUri) {
