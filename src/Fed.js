@@ -4,9 +4,8 @@ const CommandHandler = require("./command-handler/CommandHandler");
 const Cooldowns = require("./util/Cooldowns");
 const EventHandler = require("./event-handler/EventHandler");
 const FeatureHandler = require("./util/FeatureHandler");
-const DefaultCommands = require("./util/DefaultCommands");
 
-class FedCommands {
+class Main {
     constructor(obj) {
         this.init(obj);
     }
@@ -39,6 +38,10 @@ class FedCommands {
         return this._validations;
     }
 
+    get connection() {
+        return mongoose.connection;
+    }
+
     async init({
         client,
         mongoUri,
@@ -52,24 +55,22 @@ class FedCommands {
         validations = {},
     }) {
         if (!client) {
-            throw new Error("[FedCommands] Client is required!");
+            throw new Error("A client is required.");
         }
 
         this._testServers = testServers;
         this._botOwners = botOwners;
-
-        this._disabledDefaultCommands = disabledDefaultCommands.map((c) =>
-            c.toLowerCase(),
+        this._cooldowns = new Cooldowns({
+            instance: this,
+            ...cooldownConfig,
+        });
+        this._disabledDefaultCommands = disabledDefaultCommands.map((cmd) =>
+            cmd.toLowerCase(),
         );
-
         this._validations = validations;
 
         if (mongoUri) {
             await this.connectToMongo(mongoUri);
-            this._cooldowns = new Cooldowns({
-                instance: this,
-                ...cooldownConfig,
-            });
         }
 
         if (commandsDir) {
@@ -88,11 +89,10 @@ class FedCommands {
     }
 
     async connectToMongo(mongoUri) {
-        mongoose.set("strictQuery", false);
         await mongoose.connect(mongoUri, {
             keepAlive: true,
         });
     }
 }
 
-module.exports = FedCommands;
+module.exports = Main;

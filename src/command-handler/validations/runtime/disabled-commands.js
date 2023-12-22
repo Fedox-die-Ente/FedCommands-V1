@@ -12,10 +12,10 @@ module.exports = async (command, usage) => {
             commandName,
         )
     ) {
-        const text = `The command \`${commandName}\` has been disabled in this server.`;
+        const text = "This command is disabled";
 
-        if (message) message.reply(text);
-        if (interaction) interaction.reply(text);
+        if (message) message.channel.send(text);
+        else if (interaction) await interaction.reply(text);
 
         return false;
     }

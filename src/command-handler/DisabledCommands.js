@@ -17,7 +17,9 @@ class DisabledCommands {
     }
 
     async disable(guildId, commandName) {
-        if (this.isDisabled(guildId, commandName)) return;
+        if (this.isDisabled(guildId, commandName)) {
+            return;
+        }
 
         const _id = `${guildId}-${commandName}`;
         this._disabledCommands.push(_id);
@@ -30,7 +32,9 @@ class DisabledCommands {
     }
 
     async enable(guildId, commandName) {
-        if (!this.isDisabled(guildId, commandName)) return;
+        if (!this.isDisabled(guildId, commandName)) {
+            return;
+        }
 
         const _id = `${guildId}-${commandName}`;
         this._disabledCommands = this._disabledCommands.filter(

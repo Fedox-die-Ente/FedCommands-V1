@@ -1,4 +1,5 @@
 const { ApplicationCommandOptionType } = require("discord.js");
+
 class SlashCommands {
     constructor(client) {
         this._client = client;
@@ -9,7 +10,7 @@ class SlashCommands {
 
         if (guildId) {
             const guild = await this._client.guilds.fetch(guildId);
-            commands = await guild.commands;
+            commands = guild.commands;
         } else {
             commands = this._client.application.commands;
         }
@@ -22,17 +23,17 @@ class SlashCommands {
     areOptionsDifferent(options, existingOptions) {
         for (let a = 0; a < options.length; ++a) {
             const option = options[a];
-            const existingOption = existingOptions[a];
+            const existing = existingOptions[a];
 
             if (
-                option.name !== existingOption.name ||
-                option.description !== existingOption.description ||
-                option.type !== existingOption.type ||
-                option.required !== existingOption.required
+                option.name !== existing.name ||
+                option.type !== existing.type ||
+                option.description !== existing.description
             ) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -51,6 +52,8 @@ class SlashCommands {
                 options.length !== existingOptions.length ||
                 this.areOptionsDifferent(options, existingOptions)
             ) {
+                console.log(`Updating the command "${name}"`);
+
                 await commands.edit(existingCommand.id, {
                     description,
                     options,
@@ -82,11 +85,12 @@ class SlashCommands {
     createOptions({ expectedArgs = "", minArgs = 0 }) {
         const options = [];
 
-        // <num1> <num2>
+        // <num 1> <num 2>
 
         if (expectedArgs) {
             const split = expectedArgs
                 .substring(1, expectedArgs.length - 1)
+                // num 1> <num 2
                 .split(/[>\]] [<\[]/);
             // ['num 1', 'num 2']
 
