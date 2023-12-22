@@ -105,13 +105,13 @@ class CommandHandler {
                 if (type === "SLASH" || type === "BOTH") {
                     if (testOnly) {
                         for (const guildId of this._instance.testServers) {
-                            this._slashCommands.delete(
+                            await this._slashCommands.delete(
                                 command.commandName,
                                 guildId,
                             );
                         }
                     } else {
-                        this._slashCommands.delete(command.commandName);
+                        await this._slashCommands.delete(command.commandName);
                     }
                 }
 
